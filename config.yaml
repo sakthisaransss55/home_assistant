@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeassistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeassistant
+  template:
+    metadata:
+      labels:
+        app: homeassistant
+    spec:
+      containers:
+      - name: homeassistant
+        image: lscr.io/linuxserver/homeassistant:latest
+        resources:
+          limits:
+            memory: "1500Mi"
+            cpu: "600m"
+        ports:
+        - containerPort: 8123
+
+        volumeMounts:
+        - name: homeassistantconfig
+          mountPath: /config
+      volumes:
+      - name: homeassistantconfig
+        persistentVolumeClaim:
+          claimName: homeassistant-persistent-volume-claim
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistantservice
+spec:
+  selector:
+    app: homeassistant
+  ports:
+  - port: 80
+    targetPort: 8123
+
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homeassistant-persistent-volume
+spec:
+  capacity:
+    storage: 30Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: homeassistant-storage-class
+  hostPath:
+    path: /home/sakthi/kubestorage/homeassistant
+
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homeassistant-persistent-volume-claim
+spec:
+  storageClassName: homeassistant-storage-class
+  resources:
+    requests:
+      storage: 30Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteMany
+
+
