@@ -38,6 +38,7 @@ kind: Service
 metadata:
   name: homeassistantservice
 spec:
+  type: LoadBalancer
   selector:
     app: homeassistant
   ports:
